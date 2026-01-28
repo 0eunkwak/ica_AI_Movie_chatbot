@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>AI Movie Chatbot</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f2f3f5;
+        --surface: #ffffff;
+        --text: #141619;
+        --muted: #667085;
+        --brand: #1f6feb;
+        --bot: #f5f6f7;
+        --shadow: 0 12px 30px rgba(16, 24, 40, 0.08);
+        --radius-lg: 18px;
+        --radius-md: 14px;
+        --radius-sm: 10px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR",
+          system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .app {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        padding: 20px 14px 28px;
+      }
+
+      .chat-shell {
+        width: min(1100px, 100%);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+        gap: 20px;
+      }
+
+      .chat-panel {
+        background: var(--surface);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        min-height: 560px;
+        overflow: hidden;
+      }
+
+      .chat-header {
+        padding: 18px 24px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        border-bottom: 1px solid #eceef1;
+        background: linear-gradient(180deg, #ffffff 0%, #f8f9fb 100%);
+      }
+
+      .bot-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        object-fit: cover;
+      }
+
+      .chat-title {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .chat-title h1 {
+        font-size: 18px;
+        margin: 0;
+        font-weight: 600;
+      }
+
+      .chat-title span {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .chat-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 10px;
+      }
+
+      .ghost-btn {
+        background: #f1f3f6;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        color: #3b4754;
+      }
+
+      .chat-body {
+        flex: 1;
+        padding: 24px 24px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow: auto;
+      }
+
+      .timestamp {
+        text-align: center;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .message-row {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+      }
+
+      .message-row.user {
+        justify-content: flex-end;
+      }
+
+      .message-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        object-fit: cover;
+      }
+
+      .bubble {
+        max-width: min(560px, 76%);
+        padding: 12px 16px;
+        border-radius: 18px;
+        font-size: 15px;
+        line-height: 1.5;
+        box-shadow: 0 6px 16px rgba(17, 24, 39, 0.08);
+      }
+
+      .bubble.bot {
+        background: var(--bot);
+        border-bottom-left-radius: 6px;
+      }
+
+      .bubble.user {
+        background: var(--brand);
+        color: #ffffff;
+        border-bottom-right-radius: 6px;
+      }
+
+      .bubble .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        background: rgba(31, 111, 235, 0.12);
+        color: #1250a6;
+        padding: 4px 10px;
+        border-radius: 999px;
+        margin-bottom: 8px;
+      }
+
+      .quick-replies {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        border: 1px solid #d6dbe2;
+        background: #ffffff;
+        color: #344054;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+      }
+
+      .chat-input {
+        padding: 14px 20px 20px;
+        border-top: 1px solid #eceef1;
+        background: #fbfcfe;
+      }
+
+      .input-shell {
+        background: #ffffff;
+        border-radius: 999px;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid #e1e5ec;
+      }
+
+      .input-shell input {
+        border: none;
+        outline: none;
+        flex: 1;
+        font-size: 15px;
+        background: transparent;
+      }
+
+      .send-btn {
+        background: var(--brand);
+        color: #ffffff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .side-panel {
+        background: var(--surface);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        padding: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .panel-title {
+        font-size: 16px;
+        margin: 0;
+      }
+
+      .hint-card {
+        border-radius: 16px;
+        padding: 16px;
+        background: #f6f7fb;
+        border: 1px solid #e4e7ec;
+      }
+
+      .hint-card h3 {
+        margin: 0 0 8px;
+        font-size: 14px;
+      }
+
+      .hint-card p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .stat {
+        padding: 14px;
+        border-radius: 14px;
+        border: 1px solid #e4e7ec;
+      }
+
+      .stat span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .stat strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 16px;
+      }
+
+      @media (max-width: 1024px) {
+        .chat-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .side-panel {
+          order: -1;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .app {
+          padding: 12px 10px 20px;
+        }
+
+        .chat-panel {
+          border-radius: 20px;
+          min-height: auto;
+        }
+
+        .chat-header {
+          padding: 14px 16px;
+        }
+
+        .chat-body {
+          padding: 18px 16px 8px;
+        }
+
+        .bubble {
+          max-width: 86%;
+          font-size: 14px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .chat-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .chat-actions {
+          margin-left: 0;
+          width: 100%;
+          justify-content: flex-end;
+        }
+
+        .input-shell {
+          padding: 8px 12px;
+        }
+
+        .send-btn {
+          padding: 8px 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="chat-shell">
+        <main class="chat-panel" aria-label="채팅 영역">
+          <header class="chat-header">
+            <img
+              class="bot-avatar"
+              src="https://randomuser.me/api/portraits/women/44.jpg"
+              alt="챗봇 프로필 사진"
+            />
+            <div class="chat-title">
+              <h1>무비 큐레이터 챗봇</h1>
+              <span>감정, 장르, 분위기까지 한번에 추천</span>
+            </div>
+            <div class="chat-actions">
+              <button class="ghost-btn" type="button">저장됨</button>
+              <button class="ghost-btn" type="button">새 대화</button>
+            </div>
+          </header>
+
+          <section class="chat-body">
+            <div class="timestamp">오늘 오후 2:45</div>
+
+            <div class="message-row bot">
+              <img
+                class="message-avatar"
+                src="https://randomuser.me/api/portraits/women/44.jpg"
+                alt=""
+              />
+              <div class="bubble bot">
+                <div class="tag">🎬 추천 시작</div>
+                오늘 기분은 어떠신가요? 분위기나 선호 장르를 알려주시면 딱
+                맞는 영화를 추천해드릴게요.
+              </div>
+            </div>
+
+            <div class="message-row user">
+              <div class="bubble user">
+                퇴근 후에 가볍게 볼 수 있는 코미디 영화 추천해줘.
+              </div>
+            </div>
+
+            <div class="message-row bot">
+              <img
+                class="message-avatar"
+                src="https://randomuser.me/api/portraits/women/44.jpg"
+                alt=""
+              />
+              <div class="bubble bot">
+                기분 전환용 코미디라면 <strong>《인턴》</strong>이나
+                <strong>《보헤미안 랩소디》</strong> 같은 따뜻한 영화가 좋아요.
+                더 신나는 분위기를 원하면
+                <strong>《극한직업》</strong>도 추천드려요.
+              </div>
+            </div>
+
+            <div class="message-row bot">
+              <img
+                class="message-avatar"
+                src="https://randomuser.me/api/portraits/women/44.jpg"
+                alt=""
+              />
+              <div class="bubble bot">
+                원하는 분위기를 골라보세요.
+                <div class="quick-replies">
+                  <button class="chip" type="button">가볍고 밝게</button>
+                  <button class="chip" type="button">감동도 살짝</button>
+                  <button class="chip" type="button">완전 빵빵 웃음</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <footer class="chat-input">
+            <div class="input-shell">
+              <input
+                type="text"
+                placeholder="영화 취향을 알려주세요"
+                aria-label="메시지 입력"
+              />
+              <button class="send-btn" type="button">전송</button>
+            </div>
+          </footer>
+        </main>
+
+        <aside class="side-panel" aria-label="추천 가이드">
+          <h2 class="panel-title">지금 바로 추천받기</h2>
+          <div class="hint-card">
+            <h3>명확한 질문이 더 좋아요</h3>
+            <p>
+              보고 싶은 분위기, 감정, 상황을 알려주면 AI가 더욱 정확하게
+              추천해요.
+            </p>
+          </div>
+          <div class="stat-grid">
+            <div class="stat">
+              <span>추천 정확도</span>
+              <strong>98%</strong>
+            </div>
+            <div class="stat">
+              <span>응답 속도</span>
+              <strong>1.4초</strong>
+            </div>
+            <div class="stat">
+              <span>맞춤 장르</span>
+              <strong>24종</strong>
+            </div>
+            <div class="stat">
+              <span>대화 만족도</span>
+              <strong>4.9 / 5</strong>
+            </div>
+          </div>
+          <div class="hint-card">
+            <h3>추천 예시</h3>
+            <p>
+              "잔잔한 로맨스", "가족과 볼 애니메이션", "긴장감 있는 스릴러"
+              같은 키워드를 입력해보세요.
+            </p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </body>
+</html>

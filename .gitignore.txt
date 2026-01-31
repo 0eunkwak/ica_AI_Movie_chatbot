@@ -1,0 +1,39 @@
+**Node modules**
+
+node_modules/
+npm-debug.log*
+
+**Build outputs**
+
+dist/
+build/
+out/
+bin/
+
+**IDE**
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+**OS**
+
+.DS_Store
+Thumbs.db
+
+**Environment variables**
+
+.env
+.env.local
+
+**Logs**
+
+.log
+
+**SSH keys (절대 업로드 금지!)**
+
+.pem
+*.key
+id_rsa
+id_ed25519
